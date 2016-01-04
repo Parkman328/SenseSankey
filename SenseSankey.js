@@ -424,7 +424,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		var level = d.name.substr(d.name.indexOf("~")+1,1);
 		// test si on est à la fin du flux ou pas
 		if (level === "e" ){level = qDim.length -1;}
-		var entete = qDim[level] + ' : ' + d.name.substr(0,d.name.indexOf("~"));
+		var entete = qDim[level] + ' : ' + d.name.split('|')[0];
 			
 	      if (displayFormat === "Number"){
 		  return formatMoney(d.value, 0, '.', ' ','', entete);
