@@ -13,4 +13,4 @@ Original radar chart extension, developped by John Park : <a href="http://branch
 Mike Bostock's Sankey chart : <a href="http://bost.ocks.org/mike/sankey">here</a><br>
 D3.js
 
-
+![alt tag](images/animation.gif)
