@@ -1,6 +1,6 @@
 ﻿/* Put css styles in here */
 .node rect {
-  cursor: move;
+  cursor: crosshair
   fill-opacity: .9;
   shape-rendering: crispEdges;
 }

@@ -75,6 +75,7 @@ d3.sankey = function() {
  
     return link;
   };
+  
  
   // Populate the sourceLinks and targetLinks for each node.
   // Also, if the source and target are not objects, assume they are indices.
@@ -292,3 +293,5 @@ d3.sankey = function() {
  
   return sankey;
 };
+
+	

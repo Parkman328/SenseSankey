@@ -6,12 +6,12 @@ requirejs.config({
   }
 });
 //define(["jquery", "text!./style.css","extensions/SenseSankey/sankeymore"], function($, cssContent) {
-define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/sankeymore"], function($, cssContent, Theme) {
+define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/md5.min","extensions/SenseSankey/sankeymore"], function($, cssContent, Theme, md5) {
 	'use strict';
 	$( "<style>" ).html( cssContent ).appendTo( "head" );
 	return {
 		initialProperties: {
-			version: 1.2,
+			version: 1.3,
 			qHyperCubeDef: {
 				qDimensions: [],
 				qMeasures: [],
@@ -48,24 +48,48 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 							items : {
 							flowMax:{
 								type: "integer",
-								label: "Flow max",
-								ref: "flowMax",
-								defaultValue: 500
-								},	
+								label: "Flow max (10 to 2000)",
+								ref: "flowMax (max is 2000)",
+								defaultValue: 500,
+								min : 10,
+								max : 2000
+								},
+							flowChoice:{
+								ref:"flowChoice",
+								type:"integer",
+								component:"dropdown",
+								label:"Color Flow",
+								options:
+								[
+									{
+									value:1,
+									label:"Qlik Color"
+									},
+									{
+									value:2,
+									label:"Custom Color"
+									}
+								],
+								defaultValue: 1
+								
+							},
 							flowColor:{
 								type: "string",
 								component: "color-picker",
+								//component: "ColorsPickerComponent",
 								expression: "optional",
-								label: "Color Flow",
+								label: "Color Flow if no Hex Color",
 								ref: "flowColor",
-								defaultValue: 2
+								defaultValue: 2,
+								show: function(layout) { return layout.flowChoice == 1 }
 								},
 								
 							flowColorCustom:{
 								type: "string",
 								label: "Custom Hex Color for Flow",
 								ref: "flowColorCustom",
-								defaultValue: "#999999"
+								defaultValue: "#999999",
+								show: function(layout) { return layout.flowChoice == 2 }
 							    },
 								
 							Separateur:{
@@ -133,24 +157,44 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 								options:
 								[
 									{
-									value: "10",
-									label: "Palette 10 colors"
+									value: "D3-20",
+									label: "Ordinal Palette 20 colors"
+									},
+									{
+									value: "D3-20c",
+									label: "Blue-Grey Palette 20 colors"
+									},
+									{
+									value: "D3-20b",
+									label: "Blue-Purple Palette 20 colors"
 									},
 									{
 									value: "20",
 									label: "Palette 20 colors"
 									},
 									{
-									value: "20b",
-									label: "Autumn Palette 20 colors"
-									},
-									{
-									value: "20c",
-									label: "Pastel Palette 20 colors"
+									value: "20a",
+									label: "Other Palette 20 colors"
 									},
 								],
-									defaultValue: "10"
-									}
+									defaultValue: "D3-20"
+									},
+								colorPersistence:{
+									ref: "colorPersistence",
+									component: "switch",
+									type: "boolean",
+									translation: "Persistence",
+									defaultValue: false,
+									trueOption: {
+									  value: true,
+									  translation: "properties.on"
+									},
+									falseOption: {
+									  value: false,
+									  translation: "properties.off"
+									},
+									show: true
+								}
 							}
 						}
 						
@@ -174,35 +218,79 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 				j = (j = i.length) > 3 ? j % 3 : 0;
 			   return l + ' \n ' + s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "")+ m;
 			 };
-			
-		  
+		 
+		// Persistent color function
+		var hashScale = d3.scale.linear().domain([1, 4294967295]).range([ 0, 19.9999 ]);
+		
+		
+		function hashL(str) {
+		  var hashL = 5381,
+			  i    = str.length
+		  while(i)
+			hashL = (hashL * 33) ^ str.charCodeAt(--i) 
+			//hash = md5(str)
+		  return hashL >>> 0;
+		}
+		
+		function getColorForNode(strValue) {
+			if (colorPersistence===true) {
+				return colours[parseInt(Math.floor(hashScale(hashL(md5(strValue)))))];
+			} else 
+			{
+				return colours[Math.floor(Math.random() * (19))];
+			}
+			}
+				
 		  var _this = this;
-		  var maxHeight = layout.flowMax;
-		  var displayFormat = layout.displayFormat;
+		  var maxHeight         = layout.flowMax;
+		  var displayFormat     = layout.displayFormat;
 		  var displaySeparateur = layout.displaySeparateur;
-		  var displayPalette = layout.displayPalette;
+		  var displayPalette    = layout.displayPalette;
+		  var colorPersistence  = layout.colorPersistence;
 		  
-		  var flowColor = (typeof layout.flowColorCustom !== 'undefined' && layout.flowColorCustom !=='') ? layout.flowColorCustom : Theme.palette[layout.flowColor];
+		 if (displayPalette === "D3-20") {
+			var colours = ['#1f77b4','#aec7e8','#ff7f0e','#ffbb78','#2ca02c','#98df8a','#d62728','#ff9896','#9467bd','#c5b0d5','#8c564b',
+							'#c49c94','#e377c2','#f7b6d2','#7f7f7f','#c7c7c7','#bcbd22','#dbdb8d','#17becf','#9edae5' ];
+		}
+		else if (displayPalette === "D3-20b") {
+			var colours = ['#393b79','#5254a3','#6b6ecf','#9c9ede','#637939','#8ca252','#b5cf6b','#cedb9c','#8c6d31','#bd9e39',
+			'#e7ba52','#e7cb94','#843c39','#ad494a','#d6616b','#e7969c','#7b4173','#a55194','#ce6dbd','#de9ed6'];
+		}
+		else if (displayPalette === "D3-20c") {
+			var colours = ['#3182bd','#6baed6',	'#9ecae1','#c6dbef','#e6550d','#fd8d3c','#fdae6b','#fdd0a2','#31a354',
+				'#74c476','#a1d99b','#c7e9c0','#756bb1','#9e9ac8','#bcbddc','#dadaeb','#636363','#969696','#bdbdbd','#d9d9d9' ];
+		}
+		else if (displayPalette === "20") {
+			var colours = [ '#1abc9c','#7f8c8d','#2ecc71','#bdc3c7','#3498db','#c0392b','#9b59b6','#d35400','#34495e','#f39c12',
+				'#16a085','#95a5a6','#27ae60','#ecf0f1','#2980b9','#e74c3c','#8e44ad','#e67e22','#2c3e50','#f1c40f' ];
+		}
+		else if (displayPalette === "20a") {
+			var colours = [ '#023FA5','#7D87B9','#BEC1D4','#D6BCC0','#BB7784','#FFFFFF','#4A6FE3','#8595E1','#B5BBE3','#E6AFB9',
+			'#E07B91','#D33F6A','#11C638','#8DD593','#C6DEC7','#EAD3C6','#F0B98D','#EF9708','#0FCFC0','#9CDED6'];
+		}
+		
+				
+		var flowColor = (layout.flowChoice == 2) ? layout.flowColorCustom : Theme.palette[layout.flowColor];
 		  
-	      var qData = layout.qHyperCube.qDataPages[0];
+	    var qData = layout.qHyperCube.qDataPages[0];
 		  // create a new array that contains the dimension labels
-		  var qDim  = layout.qHyperCube.qDimensionInfo.map(function(d) {
+		var qDim  = layout.qHyperCube.qDimensionInfo.map(function(d) {
 				return d.qFallbackTitle;
 			});
 		  
 		  
-	      var divName = layout.qInfo.qId;
-	      var qMatrix = qData.qMatrix;
-		  var source = qMatrix.map(function(d) {
+	    var divName = layout.qInfo.qId;
+	    var qMatrix = qData.qMatrix.sort();
+		var source = qMatrix.map(function(d) {
 			  
-			var path = ""; 
-			var sep = ""; 
-			for (var i = 0; i < d.length - 1; i++) {
-			  path += sep + (d[i].qText.replace('|', ' ')) + '|' + (d[i].qElemNumber); 
-			  sep = ",";
-			}
+		var path = ""; 
+		var sep = ""; 
+		for (var i = 0; i < d.length - 1; i++) {
+			path += sep + (d[i].qText.replace('|', ' ')) + '|' + (d[i].qElemNumber); 
+			sep = ",";
+		}
 			    
-	        return {
+	    return {
 	          //"Path":d[0].qText,
 			  "Path": path,
 	          "Frequency": d[d.length - 1].qNum
@@ -218,7 +306,6 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	       }
 		  $("#" + id).width($element.width()).height($element.height());
 	      var sLinks = [];
-	      //var output = [];
 	      var endArr = [];
 	      var catArray = [];
 	    
@@ -239,6 +326,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	      var val = parseFloat(d.Frequency);
 	      if(val > 0) {
 			var tArr = path.split(",",4);  
+			//tArr.sort();
 	        if (rev == "1") {
 				tArr.reverse();
 			} 	 	
@@ -313,7 +401,6 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 
 					}
 				});
-
 			}
 		}
 	    });
@@ -326,23 +413,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	      left : 1
 	    }, width = $element.width(), height = $element.height();
 		
-		
-		var color = d3.scale.category10();
-		if (displayPalette === "10") {
-			var color = d3.scale.category10();
-		}
-		if (displayPalette === "20") {
-			var color = d3.scale.category20();
-		}
-		if (displayPalette === "20b") {
-			var color = d3.scale.category20b();
-		}
-		if (displayPalette === "20c") {
-			var color = d3.scale.category20c();
-		}
-		
-
-	    var svg = d3.select("#sk_" + divName).append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		var svg = d3.select("#sk_" + divName).append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 	  
 	    var sankey = d3.sankey().nodeWidth(15).nodePadding(10).size([width -10 , height-10]);
 	    var path = sankey.link();
@@ -402,8 +473,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		
 		//dessin du noeud
 	    	    node.append("text").attr("class", "nodeTitle").attr("x", -6).attr("y", function(d) {
-	      //console.log(d)
-	      return d.dy / 2;
+	   	      return d.dy / 2;
 	    }).attr("dy", ".35em").attr("text-anchor", "end").attr("transform", null).text(function(d) {
 	      var str = d.name.substring(0, d.name.indexOf("~")).split('|')[0];
 	      //console.log(str);
@@ -416,7 +486,8 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		node.append("rect").attr("height", function(d) {
 	      return d.dy;
 	    }).attr("width", sankey.nodeWidth()).style("fill", function(d) {
-	      return d.color = color(d.name.substring(0, d.name.indexOf("~")).replace(/ .*/, ""));
+	       return d.color = getColorForNode(d.name);
+		 
 	    }).style("stroke", function(d) {
 	      return d3.rgb(d.color).darker(2);
 	    }).append("title").text(function(d) {
@@ -444,7 +515,6 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		  if (displayFormat === "Money2"){
 		  return formatMoney(d.value, 2, '.', ' ',' €',entete);
 		  }
-		  
 	    });
 	    /*
 	     function dragmove(d) {
