@@ -11,7 +11,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	$( "<style>" ).html( cssContent ).appendTo( "head" );
 	return {
 		initialProperties: {
-			version: 1.3,
+			version: 1.3.1,
 			qHyperCubeDef: {
 				qDimensions: [],
 				qMeasures: [],
@@ -35,9 +35,9 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 					min: 1,
 					max: 1
 				},
-				//sorting: {
-				//	uses: "sorting"
-				//},
+				sorting: {
+					uses: "sorting"
+				},
 				settings: {
 					uses: "settings",
 					type: "items",
@@ -133,22 +133,18 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 									value: "Number",
 									label: "1000"
 									},
-									{
-									value: "Money2",
-									label: "1000.12 €"
-									},
-									{
-									value: "Money1",
-									label: "1000.1 €"
-									},
-									{
-									value: "Money",
-									label: "1000 €"
-									},
+									
 								],
 									defaultValue: "Number"
 									},
 									
+							currencySymbol:{
+								type: "string",
+								label: "Currency Symbol",
+								ref: "currencySymbol",
+								defaultValue: "€"
+								},							
+							
 							Palette:{
 								ref:"displayPalette",
 								type:"string",
@@ -247,6 +243,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		  var displaySeparateur = layout.displaySeparateur;
 		  var displayPalette    = layout.displayPalette;
 		  var colorPersistence  = layout.colorPersistence;
+		  var currencySymbol	= " " + layout.currencySymbol;
 		  
 		 if (displayPalette === "D3-20") {
 			var colours = ['#1f77b4','#aec7e8','#ff7f0e','#ffbb78','#2ca02c','#98df8a','#d62728','#ff9896','#9467bd','#c5b0d5','#8c564b',
@@ -280,14 +277,30 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		  
 		  
 	    var divName = layout.qInfo.qId;
-	    var qMatrix = qData.qMatrix.sort();
+	    //var qMatrix = qData.qMatrix.sort();
+		
+		var qMatrix = qData.qMatrix;
+		var sort = layout.qHyperCube.qDimensionInfo.map(function(dim) { return dim.qSortIndicator; })
+		
+		// .sort(function (a, b) {
+					// /*
+					// if (a.value > b.value)
+						// return 1;
+					// if (a.value < b.value)
+						// return -1;
+					// a doit être égale à b
+					// */
+					// return a - b;
+					// });		
+					
 		var source = qMatrix.map(function(d) {
 			  
 		var path = ""; 
 		var sep = ""; 
 		for (var i = 0; i < d.length - 1; i++) {
 			path += sep + (d[i].qText.replace('|', ' ')) + '|' + (d[i].qElemNumber); 
-			sep = ",";
+			//sep = ",";
+			sep = "`";
 		}
 			    
 	    return {
@@ -325,7 +338,8 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	      var path = d.Path;
 	      var val = parseFloat(d.Frequency);
 	      if(val > 0) {
-			var tArr = path.split(",",4);  
+			//var tArr = path.split(",",4);  
+			var tArr = path.split("`",4);  
 			//tArr.sort();
 	        if (rev == "1") {
 				tArr.reverse();
@@ -360,7 +374,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	      var path = d.Path
 	      var val = parseFloat(d.Frequency);
 	      if(val > 0) {
-	      var tArr = path.split(",");  
+	      var tArr = path.split("`");  
 	  
 	      if (rev == "1") {
 	        tArr.reverse();
@@ -437,22 +451,13 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 			var end = d.target.name.split('|')[0];
 			
 	      if (displayFormat === "Number"){
-		  return formatMoney(d.value, 0, '.', ' ','' , start + displaySeparateur + end);
+		  return formatMoney(d.value, 0, '.', ' ',currencySymbol , start + displaySeparateur + end);
 		  }
 		  if (displayFormat === "Number1"){
-		  return formatMoney(d.value, 1, '.', ' ','' , start + displaySeparateur + end);
+		  return formatMoney(d.value, 1, '.', ' ',currencySymbol , start + displaySeparateur + end);
 		  }
 		  if (displayFormat === "Number2"){
-		  return formatMoney(d.value, 2, '.', ' ','' , start + displaySeparateur + end);
-		  }
-		  if (displayFormat === "Money"){
-		  return formatMoney(d.value, 0, '.', ' ',' €' , start + displaySeparateur + end);
-		  }
-		  if (displayFormat === "Money1"){
-		  return formatMoney(d.value, 1, '.', ' ',' €' , start + displaySeparateur + end);
-		  }
-		  if (displayFormat === "Money2"){
-		  return formatMoney(d.value, 2, '.', ' ',' €' , start + displaySeparateur + end);
+		  return formatMoney(d.value, 2, '.', ' ',currencySymbol , start + displaySeparateur + end);
 		  }
 	    });
 		
@@ -498,25 +503,18 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		var entete = qDim[level] + ' : ' + d.name.split('|')[0];
 			
 	      if (displayFormat === "Number"){
-		  return formatMoney(d.value, 0, '.', ' ','', entete);
+		  return formatMoney(d.value, 0, '.', ' ',currencySymbol, entete);
 		  }
 		  if (displayFormat === "Number1"){
-		  return formatMoney(d.value, 1, '.', ' ','',entete);
+		  return formatMoney(d.value, 1, '.', ' ',currencySymbol,entete);
 		  }
 		  if (displayFormat === "Number2"){
-		  return formatMoney(d.value, 2, '.', ' ','',entete);
+		  return formatMoney(d.value, 2, '.', ' ',currencySymbol,entete);
 		  }
-		  if (displayFormat === "Money"){
-		  return formatMoney(d.value, 0, '.', ' ',' €',entete);
-		  }
-		  if (displayFormat === "Money1"){
-		  return formatMoney(d.value, 1, '.', ' ',' €',entete);
-		  }
-		  if (displayFormat === "Money2"){
-		  return formatMoney(d.value, 2, '.', ' ',' €',entete);
-		  }
+		  
 	    });
-	    /*
+		
+		/*
 	     function dragmove(d) {
 	      d3.select(this).attr("transform", "translate(" + d.x + "," + (d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))) + ")");
 	      sankey.relayout();
