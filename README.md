@@ -15,4 +15,6 @@ D3.js
 
 V1.3 Add new option for persistent colors
 
+V1.3.1 Correct data with commas + Choice of device symbil.
+
 ![alt tag](images/animation.gif)
