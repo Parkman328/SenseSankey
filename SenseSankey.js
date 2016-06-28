@@ -477,6 +477,11 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 				[ parseInt(d.target.name.split('~')[0].split('|')[1]) ],
 				true
 			);
+			_this.backendApi.selectValues(
+				parseInt(d.source.name.split('~')[1].replace('end', qDim.length - 1)), //DAP: As we already selected a link, it make sense to select the target dimension filtering the data
+				[ parseInt(d.source.name.split('~')[0].split('|')[1]) ],
+				true
+			);			
 		});		
 						
 		//dessin du noeud
