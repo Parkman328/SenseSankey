@@ -11,7 +11,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	$( "<style>" ).html( cssContent ).appendTo( "head" );
 	return {
 		initialProperties: {
-			version: 1.3,
+			version: 1.4,
 			qHyperCubeDef: {
 				qDimensions: [],
 				qMeasures: [],
