@@ -17,6 +17,8 @@ V1.3 Add new option for persistent colors
 
 V1.3.1 Correct data with commas + Choice of device symbol.
 
+V1.4 add clickables links
+
 ![alt tag](images/animation.gif)
 
 License
