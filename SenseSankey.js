@@ -11,7 +11,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	$( "<style>" ).html( cssContent ).appendTo( "head" );
 	return {
 		initialProperties: {
-			version: 1.4,
+			version: 1.5,
 			qHyperCubeDef: {
 				qDimensions: [],
 				qMeasures: [],
@@ -211,7 +211,20 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 				i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
 				j = (j = i.length) > 3 ? j % 3 : 0;
 			   return l + ' \n ' + s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "")+ m;
-			 };
+		};
+		
+		function formatNumber(displayFormat, value, context,currencySymbol){
+			if (displayFormat === "Number"){
+				return formatMoney(value, 0, '.', ' ',currencySymbol, context);
+			}
+			if (displayFormat === "Number1"){
+				return formatMoney(value, 1, '.', ' ',currencySymbol,context);
+			}
+			if (displayFormat === "Number2"){
+				return formatMoney(value, 2, '.', ' ',currencySymbol,context);
+			}
+		}		
+		 
 		 
 		// Persistent color function
 		var hashScale = d3.scale.linear().domain([1, 4294967295]).range([ 0, 19.9999 ]);
@@ -238,10 +251,11 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		  var _this = this;
 		  var maxHeight         = layout.flowMax;
 		  var displayFormat     = layout.displayFormat;
+		  var currencySymbol	= " " + layout.currencySymbol;
 		  var displaySeparateur = layout.displaySeparateur;
 		  var displayPalette    = layout.displayPalette;
 		  var colorPersistence  = layout.colorPersistence;
-		  var currencySymbol	= " " + layout.currencySymbol;
+		  var offset = $element.offset();
 		  
 		 if (displayPalette === "D3-20") {
 			var colours = ['#1f77b4','#aec7e8','#ff7f0e','#ffbb78','#2ca02c','#98df8a','#d62728','#ff9896','#9467bd','#c5b0d5','#8c564b',
@@ -413,8 +427,10 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 	    var sankey = d3.sankey().nodeWidth(15).nodePadding(10).size([width -10 , height-10]);
 	    var path = sankey.link();
 	 
+	
 
 	    sankey.nodes(jNodes).links(sLinks).layout(32);
+		
 	    var link = svg.append("g").selectAll(".link").data(sLinks).enter().append("path").attr("class", "link").attr("d", path).style("stroke-width",function(d) {
 	      return Math.max(1, d.dy);
 	    }).sort(function(a, b) {
@@ -424,23 +440,36 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		//Color of Flow 
 		link.style('stroke', flowColor);
 
-		// affiche la valeur sur le flux en popup
-			link.append("title").text(function(d) {
-			//Je supprime les tildes et les pipes
-			var start = d.source.name.split('|')[0];
-			//var start = d.source.name.substr(0, d.source.name.length - 2).split('|')[0];
-			var end = d.target.name.split('|')[0];
-			
-	      if (displayFormat === "Number"){
-		  return formatMoney(d.value, 0, '.', ' ',currencySymbol , start + displaySeparateur + end);
-		  }
-		  if (displayFormat === "Number1"){
-		  return formatMoney(d.value, 1, '.', ' ',currencySymbol , start + displaySeparateur + end);
-		  }
-		  if (displayFormat === "Number2"){
-		  return formatMoney(d.value, 2, '.', ' ',currencySymbol , start + displaySeparateur + end);
-		  }
-	    });
+
+		$('.ttip').remove(); //We make sure there isn't any other tooltip div in the doom
+
+        // Create tooltip div 
+		var  tooltip = d3.select("body")
+				.append("div")
+				.attr("class","ttip")
+				.attr("id","ttip")
+				.style("position", "absolute")
+				.style("z-index", "10")
+				.style("visibility", "hidden");	
+		
+		//Link tooltip
+		link.on("mouseover", function(d){
+				var start = d.source.name.split('|')[0];
+				var end = d.target.name.split('|')[0];
+				var targetValue = formatNumber(displayFormat,d.value,'',currencySymbol);
+				
+				tooltip.html("<b>"+start+"</b>"+displaySeparateur+"<b>"+end+"</b><br/>"+targetValue);			
+				return tooltip.style("visibility", "visible");})
+			.on("mousemove", function(d){
+				var start = d.source.name.split('|')[0];
+				var end = d.target.name.split('|')[0];
+				var targetValue = formatNumber(displayFormat,d.value,'',currencySymbol);
+				tooltip.html("<b>"+start+"</b>"+displaySeparateur+"<b>"+end+"</b><br/>"+targetValue);
+				return tooltip.style("top",(d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");
+			})
+			.on("mouseout", function(){
+				return tooltip.style("visibility", "hidden");
+			});
 		
 		var node = svg
 		.append("g").selectAll(".node").data(jNodes).enter().append("g").attr("class", "node").attr("transform", function(d) {
@@ -456,22 +485,24 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 				true
 			);
 		})
-
+		
 		link.on("click",function(d,i){
 			_this.backendApi.selectValues(
-				parseInt(d.target.name.split('~')[1].replace('end', qDim.length - 1)), //DAP: As we already selected a link, it make sense to select the target dimension filtering the data
+				parseInt(d.target.name.split('~')[1].replace('end', qDim.length - 1)), //DAP: As we already selected a link, it make sense to select the source and target dimensions and filter the data
 				[ parseInt(d.target.name.split('~')[0].split('|')[1]) ],
 				true
 			);
 			_this.backendApi.selectValues(
-				parseInt(d.source.name.split('~')[1].replace('end', qDim.length - 1)), //DAP: As we already selected a link, it make sense to select the target dimension filtering the data
+				parseInt(d.source.name.split('~')[1].replace('end', qDim.length - 1)),
 				[ parseInt(d.source.name.split('~')[0].split('|')[1]) ],
 				true
-			);			
+			);	
+			$('.ttip').remove(); //remove tooltip object on click.
 		});		
-						
+		
+					
 		//dessin du noeud
-	    	    node.append("text").attr("class", "nodeTitle").attr("x", -6).attr("y", function(d) {
+		node.append("text").attr("class", "nodeTitle").attr("x", -6).attr("y", function(d) {
 	   	      return d.dy / 2;
 	    }).attr("dy", ".35em").attr("text-anchor", "end").attr("transform", null).text(function(d) {
 	      var str = d.name.substring(0, d.name.indexOf("~")).split('|')[0];
@@ -489,24 +520,43 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		 
 	    }).style("stroke", function(d) {
 	      return d3.rgb(d.color).darker(2);
-	    }).append("title").text(function(d) {
-			
-		var level = d.name.substr(d.name.indexOf("~")+1,1);
-		// test si on est à la fin du flux ou pas
-		if (level === "e" ){level = qDim.length -1;}
-		var entete = qDim[level] + ' : ' + d.name.split('|')[0];
-			
-	      if (displayFormat === "Number"){
-		  return formatMoney(d.value, 0, '.', ' ',currencySymbol, entete);
-		  }
-		  if (displayFormat === "Number1"){
-		  return formatMoney(d.value, 1, '.', ' ',currencySymbol,entete);
-		  }
-		  if (displayFormat === "Number2"){
-		  return formatMoney(d.value, 2, '.', ' ',currencySymbol,entete);
-		  }
-		  
 	    });
+		
+		//Node tooltip
+		node.on("mouseover", function(d){
+			var level = d.name.substr(d.name.indexOf("~")+1,1);
+			var edgeMargin= 0; //Last nodes might not have enough space for the tooltip, so we add a negative margin to push the tooltip on the left
+			// test si on est à la fin du flux ou pas
+			if (level === "e" ){
+				level = qDim.length -1;
+				edgeMargin=-80;
+			}
+			var entete = qDim[level] + ' : ' + d.name.split('|')[0];
+			var value=formatNumber(displayFormat,d.value,'',currencySymbol);
+				
+			tooltip.html("<b>"+entete+"</b><br/>"+value);			
+			return tooltip.style("visibility", "visible").style("top",(d3.event.pageY+10)+"px").style("left",(d3.event.pageX+10+edgeMargin)+"px");
+		})
+		.on("mousemove", function(d){
+			var edgeMargin= 0;
+			var level = d.name.substr(d.name.indexOf("~")+1,1);
+			// test si on est à la fin du flux ou pas
+			if (level === "e" ){
+				level = qDim.length -1;
+				edgeMargin=-80;
+			}
+			
+			var entete = qDim[level] + ' : ' + d.name.split('|')[0];		
+			var value=formatNumber(displayFormat,d.value,'',currencySymbol);
+				
+	
+			tooltip.html("<b>"+entete+"</b><br/>"+value);
+			return tooltip.style("top",(d3.event.pageY+10)+"px").style("left",(d3.event.pageX+10+edgeMargin)+"px");
+		})
+		.on("mouseout", function(){
+			return tooltip.style("visibility", "hidden");
+		});
+			
 	    /*
 	     function dragmove(d) {
 	      d3.select(this).attr("transform", "translate(" + d.x + "," + (d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))) + ")");
@@ -516,5 +566,7 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		*/
 		}        
     };
+	
+
     
 } );
