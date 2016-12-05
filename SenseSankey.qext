@@ -1,5 +1,5 @@
 {
-	"name": "Sense Sankey",
+	"name": "SenseSankey",
 	"description": "Sankey Graph",
 	"icon": "extension",
 	"type": "visualization",

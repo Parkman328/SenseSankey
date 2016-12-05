@@ -1,3 +1,21 @@
+/*
+requirejs.config({
+  paths : {
+	  d3: "/extensions/SenseSankey/d3.min",
+	  sankey: "/extensions/SenseSankey/sankeymore"
+  },
+  shim : {
+	d3 : {
+      exports: 'd3'
+    },
+    sankey : {
+		exports: 'sankey',
+		deps: ['d3']
+    }
+  }
+});
+*/
+
 requirejs.config({
   shim : {
     "extensions/SenseSankey/sankeymore" : {
@@ -5,13 +23,15 @@ requirejs.config({
     }
   }
 });
-//define(["jquery", "text!./style.css","extensions/SenseSankey/sankeymore"], function($, cssContent) {
-define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/md5.min","extensions/SenseSankey/sankeymore"], function($, cssContent, Theme, md5) {
+
+
+//define(["jquery", "text!./style.css","extensions/SenseSankey/md5.min",'sankey'], function($, cssContent, md5) {
+define(["jquery", "text!./style.css","extensions/SenseSankey/md5.min","extensions/SenseSankey/sankeymore"], function($, cssContent, md5) {
 	'use strict';
 	$( "<style>" ).html( cssContent ).appendTo( "head" );
 	return {
 		initialProperties: {
-			version: 1.5,
+			version: 2.0,
 			qHyperCubeDef: {
 				qDimensions: [],
 				qMeasures: [],
@@ -54,43 +74,16 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 								min : 10,
 								max : 2000
 								},
-							flowChoice:{
-								ref:"flowChoice",
-								type:"integer",
-								component:"dropdown",
-								label:"Color Flow",
-								options:
-								[
-									{
-									value:1,
-									label:"Qlik Color"
-									},
-									{
-									value:2,
-									label:"Custom Color"
-									}
-								],
-								defaultValue: 1
-								
-							},
+							
 							flowColor:{
 								type: "string",
 								component: "color-picker",
-								//component: "ColorsPickerComponent",
 								expression: "optional",
-								label: "Color Flow if no Hex Color",
-								ref: "flowColor",
-								defaultValue: 2,
-								show: function(layout) { return layout.flowChoice == 1 }
-								},
-								
-							flowColorCustom:{
-								type: "string",
-								label: "Custom Hex Color for Flow",
+								label: "Color Flow",
 								ref: "flowColorCustom",
-								defaultValue: "#999999",
-								show: function(layout) { return layout.flowChoice == 2 }
-							    },
+								dualOutput: true,
+								defaultValue: "#999999"
+								},
 								
 							Separateur:{
 								ref: "displaySeparateur",
@@ -279,7 +272,8 @@ define(["jquery", "text!./style.css","core.utils/theme","extensions/SenseSankey/
 		}
 		
 				
-		var flowColor = (layout.flowChoice == 2) ? layout.flowColorCustom : Theme.palette[layout.flowColor];
+		//var flowColor = (layout.flowChoice == 2) ? layout.flowColorCustom : Theme.palette[layout.flowColor];
+		var flowColor = layout.flowColorCustom.color;
 		  
 	    var qData = layout.qHyperCube.qDataPages[0];
 		  // create a new array that contains the dimension labels
