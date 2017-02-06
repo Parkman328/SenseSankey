@@ -21,6 +21,8 @@ V1.4 add clickables links
 
 V2.0 New color Selection to be compatible with QlikSense 3.1 SR2
 
+V2.1 Resolved conflict with other extensions made by Brixm  
+
 ![alt tag](images/animation.gif)
 
 License
