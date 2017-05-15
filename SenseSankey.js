@@ -25,7 +25,7 @@ define(
 		$( "<style>" ).html( cssContent ).appendTo( "head" );
 		return {
 			initialProperties: {
-				version: 2.1,
+				version: 2.2,
 				qHyperCubeDef: {
 					qDimensions: [],
 					qMeasures: [],
@@ -57,7 +57,7 @@ define(
 						type: "items",
 						items : {
 								SankeyGroup:{
-								label : "Sankey Settings v2.1",
+								label : "Sankey Settings v2.2",
 								type:"items",
 								items : {
 								flowMax:{
@@ -284,7 +284,7 @@ define(
 			var sep = ""; 
 			for (var i = 0; i < d.length - 1; i++) {
 				path += sep + (d[i].qText.replace('|', ' ')) + '|' + (d[i].qElemNumber); 
-				sep = ",";
+				sep = "§";
 			}
 					
 			return {
@@ -322,7 +322,7 @@ define(
 			  var path = d.Path;
 			  var val = parseFloat(d.Frequency);
 			  if(val > 0) {
-				var tArr = path.split(",",4);  
+				var tArr = path.split("§",4);  
 				//tArr.sort();
 				if (rev == "1") {
 					tArr.reverse();
@@ -357,7 +357,7 @@ define(
 			  var path = d.Path
 			  var val = parseFloat(d.Frequency);
 			  if(val > 0) {
-			  var tArr = path.split(",");  
+			  var tArr = path.split("§");  
 		  
 			  if (rev == "1") {
 				tArr.reverse();

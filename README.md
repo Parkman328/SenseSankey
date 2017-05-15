@@ -23,6 +23,8 @@ V2.0 New color Selection to be compatible with QlikSense 3.1 SR2
 
 V2.1 Resolved conflict with other extensions made by Brixm  
 
+V2.2 Correct the comma issue
+
 ![alt tag](images/animation.gif)
 
 License
