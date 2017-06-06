@@ -46,7 +46,7 @@ On the very top of the “Network” tab you will find the check box “Disable 
 Now, navigate back to the app you were having problems with and hit F5 to refresh.
 If you have the same problem with other apps just repeat the process with that app.
 
-Google Chrome
+<b>Google Chrome</b>
 
 Navigate to the app you are having problems with.
 Press F12 or Ctrl+Shift+j to open the developer tools.
@@ -57,7 +57,7 @@ You can now close the developer tools by pressing F12 again.
 
 If you have the same problem with other apps, just repeat the process with that app.
 
-Firefox
+<b>Firefox</b>
 
 Navigate to the app you are having problems with.
 Press F12 to open the developer tools.
@@ -68,7 +68,7 @@ You can now close the developer tools by pressing F12 again.
 
 If you have the same problem with other apps, just repeat the process with that app.
 
-Internet Explorer
+<b>Internet Explorer</b>
 
 This is for Internet Explorer 9, but the steps for Internet Explorer 10 and 11 is most likely very similar.
 
