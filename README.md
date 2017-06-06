@@ -36,7 +36,7 @@ If you install Qlik Sense and the Extensions as instructed but get the error “
 
 Below you will find a short step by step guide on how to clear the cache depending on how you run Qlik Sense desktop. Terminology may differ between languages but the functionality should be the same.
 
-The Desktop Application
+<b>The Desktop Application</b>
 
 Navigate to the app you are having problems with.
 Hold Ctrl+Shift and right click anywhere in the app.
