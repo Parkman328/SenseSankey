@@ -7,22 +7,17 @@ requirejs.config({
   }
 });
 
-//define(["jquery", "text!./style.css","extensions/SenseSankey/sankeymore"], function($, cssContent) {
 define(
 	[
 	"jquery", 
-	"text!./style.css",
-	"text!themes/old/sense/theme.json",
+	"css!./style.css",
 	"extensions/SenseSankey/md5.min",
 	"extensions/SenseSankey/sankeymore"	
 	],
 		
-	function($, cssContent, Theme, md5) {
-		
+	function($, cssContent, md5) {
 		'use strict';
-		Theme = JSON.parse(Theme); 
 
-		$( "<style>" ).html( cssContent ).appendTo( "head" );
 		return {
 			initialProperties: {
 				version: 2.2,
@@ -265,15 +260,13 @@ define(
 				'#E07B91','#D33F6A','#11C638','#8DD593','#C6DEC7','#EAD3C6','#F0B98D','#EF9708','#0FCFC0','#9CDED6'];
 			}
 			
-					
-			//var flowColor = (layout.flowChoice == 2) ? layout.flowColorCustom : Theme.palette[layout.flowColor];
 			var flowColor = layout.flowColorCustom.color;
 			  
 			var qData = layout.qHyperCube.qDataPages[0];
-			  // create a new array that contains the dimension labels
+			// create a new array that contains the dimension labels
 			var qDim  = layout.qHyperCube.qDimensionInfo.map(function(d) {
-					return d.qFallbackTitle;
-				});
+				return d.qFallbackTitle;
+			});
 			  
 			  
 			var divName = layout.qInfo.qId;
